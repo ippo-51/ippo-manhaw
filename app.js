@@ -1,0 +1,1 @@
+// v4 app logic with image compression (placeholder)

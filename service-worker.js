@@ -1,0 +1,1 @@
+/* service worker v4 placeholder */
