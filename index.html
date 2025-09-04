@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>مانهواي — متابعتي</title>
+  <meta name="theme-color" content="#0f172a"/>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <style>
+    :root{--bg:#0f172a;--card:#111827;--card2:#0b1220;--text:#e5e7eb;--muted:#94a3b8;--accent:#22c55e;--danger:#ef4444;--border:#253041}
+    *{box-sizing:border-box}body{margin:0;font-family:"Segoe UI",Arial,Tahoma,sans-serif;background:var(--bg);color:var(--text)}
+    .wrap{max-width:1100px;margin:32px auto;padding:0 16px}
+    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+    h1{margin:0;font-size:24px}.controls{display:flex;gap:8px;flex-wrap:wrap}
+    button,.btn{background:var(--accent);color:#062815;border:0;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer}
+    button.secondary{background:#334155;color:#e5e7eb}button.ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
+    button.danger{background:var(--danger);color:#210909}
+    .grid{display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:14px}
+    @media(min-width:620px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(min-width:980px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
+    .thumb{position:relative;height:220px;background:#0b1220;display:flex;align-items:center;justify-content:center;overflow:hidden}
+    .thumb img{width:100%;height:100%;object-fit:cover}.meta{padding:12px}.title{font-weight:700;font-size:16px;display:flex;align-items:center;gap:8px;word-break:break-word}
+    .row{display:flex;align-items:center;justify-content:space-between;margin-top:8px;gap:8px;flex-wrap:wrap}
+    .muted{color:var(--muted);font-size:13px}.link{color:#93c5fd;text-decoration:none;word-break:break-all}
+    .kpis{display:flex;gap:10px;align-items:center}.kpi{background:var(--card2);border:1px solid var(--border);padding:6px 10px;border-radius:999px;font-size:13px}
+    .actions{display:flex;gap:8px;margin-top:12px}.empty{opacity:.7;text-align:center;padding:24px;border:1px dashed var(--border);border-radius:14px;background:var(--card)}
+    .toolbar{display:flex;gap:8px}
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;padding:16px;z-index:100}
+    .modal{background:var(--card);border:1px solid var(--border);border-radius:16px;max-width:560px;width:100%;padding:16px}
+    .modal h2{margin:0 0 8px 0}.form{display:grid;gap:10px}.form label{font-size:13px;color:var(--muted)}
+    .form input[type="text"],.form input[type="url"],.form input[type="number"]{width:100%;padding:12px;background:#0f172a;border:1px solid var(--border);border-radius:10px;color:var(--text);outline:none}
+    .form .row{justify-content:flex-start;gap:10px}.img-preview{width:96px;height:96px;border-radius:12px;overflow:hidden;background:#0b1220;border:1px solid var(--border);display:flex;align-items:center;justify-content:center}
+    .img-preview img{width:100%;height:100%;object-fit:cover}.hint{font-size:12px;color:var(--muted)}footer{margin-top:26px;display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:12px}
+    .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#111827;padding:10px 14px;border-radius:10px;border:1px solid var(--border);display:none}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>📚 مانهواي</h1>
+      <div class="controls">
+        <button id="btnAdd">+ إضافة</button>
+        <div class="toolbar">
+          <button class="secondary" id="btnExport">تصدير</button>
+          <label class="btn ghost" style="cursor:pointer">
+            استيراد
+            <input id="importFile" type="file" accept="application/json" style="display:none">
+          </label>
+          <button class="ghost" id="btnClear">تفريغ الكل</button>
+          <button class="ghost" id="btnInstall" style="display:none">تثبيت كتطبيق</button>
+        </div>
+      </div>
+    </header>
+
+    <div id="list" class="grid"></div>
+    <div id="empty" class="empty" style="display:none">لا توجد عناصر بعد. اضغط زر <b>+ إضافة</b> لإضافة أول مانهوا.</div>
+
+    <footer>
+      <div>يحفظ كل شيء محليًا (LocalStorage) — يعمل دون إنترنت بعد أول تشغيل.</div>
+      <div>Made for Ippo ❤️</div>
+    </footer>
+  </div>
+
+  <div id="backdrop" class="modal-backdrop">
+    <div class="modal">
+      <h2 id="modalTitle">إضافة مانهوا</h2>
+      <div class="form">
+        <div class="row">
+          <div class="img-preview"><img id="preview" alt="preview" /></div>
+          <div>
+            <label>غلاف (اختياري):</label>
+            <div class="row">
+              <input id="imgFile" type="file" accept="image/*">
+              <input id="imgUrl" type="url" placeholder="أو رابط صورة">
+            </div>
+            <div class="hint">إن لم تُضف صورة، ستظهر بطاقة بدون غلاف.</div>
+          </div>
+        </div>
+        <div>
+          <label>العنوان</label>
+          <input id="title" type="text" placeholder="مثال: AAAA" required>
+        </div>
+        <div class="row">
+          <div style="flex:1">
+            <label>الشابتر الحالي</label>
+            <input id="chapter" type="number" min="0" step="1" placeholder="مثال: 55">
+          </div>
+          <div style="flex:2">
+            <label>رابط المانهوا</label>
+            <input id="link" type="url" placeholder="https://...">
+          </div>
+        </div>
+        <div class="row" style="justify-content:space-between">
+          <button id="save" class="btn">حفظ</button>
+          <button id="cancel" class="secondary">إلغاء</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js');
+      });
+    }
+  </script>
+</body>
+</html>
